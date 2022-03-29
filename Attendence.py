@@ -7,6 +7,15 @@ import gspread
 import datetime
 import requests
 import pandas as pd
+import json
+import pyttsx3
+
+def talk(speak):
+    engine = pyttsx3.init()
+    voices = engine.getProperty('voices')  # getting details of current voice
+    engine.setProperty('voice', voices[1].id)
+    engine.say(speak)
+    engine.runAndWait()
 
 def send_msg(text):
     token = '5278107863:AAHQfWg2Bhyw1rgnRlJ9qqUQPTOpjjunlrw'
@@ -20,6 +29,7 @@ def send_msg(text):
 
 
 
+#Google Sheets
 gc = gspread.service_account(filename='credential.json')
 sh = gc.open_by_key('1zRiqIuYzLhhZfH77NonoQTWlDbQZXQdcn3vU4UcDgZg')
 worksheet = sh.sheet1
@@ -63,8 +73,8 @@ encodelistKnown = findencodings(images)
 print("Encoding Complete")
 
 
-cap = cv2.VideoCapture(0)
-
+cap = cv2.VideoCapture(1)
+i = 0
 while True:
     success,img = cap.read()
     imgS = cv2.resize(img,(0,0),None,0.25,0.25)
@@ -84,6 +94,7 @@ while True:
 
 
         if matches[matchIndex]:
+            print(matches[matchIndex])
             #SheetList = []
             name = classNames[matchIndex].upper()
             #SheetList.append(name)
@@ -93,9 +104,10 @@ while True:
             #y1, x2, y2, x1 = y1*4,x2*4,y2*4,x1*4
             cv2.rectangle(img,(x1,y1),(x2,y2),(0,255,0),2)
             cv2.rectangle(img,(x1,(y2-35)),(x2,y2),(0,255,0),cv2.FILLED)
-            cv2.putText(img,name,(x1+6,y2-6),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+            cv2.putText(img,name,(x1+6,y2-6),cv2.FONT_HERSHEY_DUPLEX, 1.0,(255,255,255),2)
             user = [name, date, time]
             worksheet.append_row(user)
+
 
 
 
@@ -106,11 +118,35 @@ while True:
             # y1, x2, y2, x1 = y1*4,x2*4,y2*4,x1*4
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
             cv2.rectangle(img, (x1, (y2 - 35)), (x2, y2), (0, 0, 255), cv2.FILLED)
-            cv2.putText(img, "Unknown", (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
+            cv2.putText(img, "Unknown", (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 255, 255), 2)
             user = ["Unknown", date, time]
             worksheet.append_row(user)
+            cv2.imwrite('Unknown/Unkown' + str(i) + '.jpg', img)
+            talk("An Unkown Person Found!")
+            #Uploading Photos on Gdrive
+            headers = {
+                "Authorization": "Bearer ya29.A0ARrdaM_mMXkPWAlK6aVlI1ZeWCLgErIN0cBqyCRCcNh0mXLcyvptayJJRJYy5luuVHLrBu-ZpeJvM2RBPY6GW5U5yVM4gl1DDTUEw96NRnuctrih7VCrndIkmOEYkA4JpZc8P0dku2WIbpfiu8Y6NysUu6de"}
 
-            send_msg("An Unknown Person Entires Your Room \n Current Time: "+time )
+            para = {
+                "name": "Unkown" + str(i) + ".jpg",
+                "parents": ["1adFWxxKK3uBDFk-uOOPxfJtIV2upqgt2"],
+            }
+            files = {
+                'data': ('metadata', json.dumps(para), 'application/json; charset=UTF-8'),
+                'file': open("Unknown/Unkown" + str(i) + ".jpg", "rb")
+            }
+
+
+            r = requests.post(
+                "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+                headers=headers,
+                files=files
+            )
+            print(r.text)
+
+            i += 1
+            send_msg("🛑🛑 Alert 🛑🛑 \n\nAn Unknown Person Entires Your Room \n\n "+
+                     "View Unknown Faces: https://drive.google.com/drive/folders/1adFWxxKK3uBDFk-uOOPxfJtIV2upqgt2 \n\nn"+"Current Time: "+time )
 
 
     cv2.imshow('Webcam',img)
@@ -129,5 +165,6 @@ df = dataframe.drop_duplicates(subset=['Name', 'Date'], keep='last')
 #count_row = len(index)
 rd = str(df)
 
-send_msg("These are Unique Result \n\n"+rd + "\n\n"+" To view Full Sheets: rebrand.ly/aiyfkwm \n\n Developed By Evangel")
-
+send_msg("These are Unique Result \n\n"+rd + "\n\n"+
+         " To view Full Sheets: rebrand.ly/e4k7aoi \n\n"+
+         "View Unknown Faces: https://drive.google.com/drive/folders/1adFWxxKK3uBDFk-uOOPxfJtIV2upqgt2" )
