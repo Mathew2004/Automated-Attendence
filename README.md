@@ -1,12 +1,15 @@
-# Automated-Attendence Developed By Evangel Purification
+# Automated-Attendence System Using Face Recognition
 
+<h3>Quick Installation</h3>
+<ul>
+  <li>pip install opencv-python</li>
+  <li>pip install numpy</li>
+  <li>pip install dlib</li>
+  <li>pip install cmake</li>
+  <li>pip install face-recognition</li>
+  <li>pip install gspread</li>
+</ul>
 
-pip install opencv-python
-pip install numpy
-pip install dlib
-pip install cmake
-pip install face-recognition
-pip install gspread
 
 This program can identify individuals in front of a camera by detecting their faces and comparing them to pictures of employees or students. If a match is found, the program records their name in a Google Sheets document. However, if there is no match, it sends an alert message via a Telegram bot.
 
